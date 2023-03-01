@@ -12,7 +12,7 @@ Copyright (c) 2023 tueddy (Dirk Carstensen)
    - read ISO-18693 UID's
    - support for ICode-SLIX password protected tags (privacy mode) / custom tags
    - LPCD - low power card detection
-   - Auto calibration for LPCD-mode. Avoid false wakeups
+   - Auto calibration for LPCD-mode. Avoid false wakeups like in PN5180-library: https://github.com/tueddy/PN5180-Library
   
 
 Some header declarations and functions taken and extended from https://github.com/kenny5660/CLRC663.git
