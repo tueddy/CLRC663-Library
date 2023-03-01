@@ -42,7 +42,7 @@ CLRC663 reader(&SPI, CHIP_SELECT, IRQ_PIN);
 For I2C use SDA and SCL
 Create a I2C instance with
 ```` c++
-CLRC663 reader(0x28, IRQ_PIN);
+CLRC663 reader(0x2A, IRQ_PIN);
 ````
 
 
