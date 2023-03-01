@@ -1,6 +1,6 @@
-# CLRC663-Library
+# CLRC663 - RFID-reader library
 
-An Arduino/PlatformIO library for the CLRC633 reader module
+An Arduino/PlatformIO library for the CLRC633 RFID-reader module
 
 Copyright (c) 2023 tueddy (Dirk Carstensen) 
 
