@@ -53,7 +53,7 @@
 // SPI instance
 CLRC663 reader(&SPI, CHIP_SELECT, IRQ_PIN);
 // I2C instance (address 0x28-0x2B)
-//CLRC663 reader(0x28, IRQ_PIN);
+//CLRC663 reader(0x2A, IRQ_PIN);
 
 
 
