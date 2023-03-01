@@ -8,6 +8,7 @@ Features:
    - read ISO-18693 UID's
    - support for ICode-SLIX password protected tags (privacy mode)
    - LPCD - low power card detection
+   - Auto calibration for LPCD-mode. Avoid false wakeups
   
 Copyright (c) 2023 tueddy (Dirk Carstensen) 
 
