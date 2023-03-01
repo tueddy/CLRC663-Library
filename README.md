@@ -49,7 +49,7 @@ CLRC663 reader(0x2A, IRQ_PIN);
 Module is delivered in SPI mode by default. If you need to change your CLRC663 module to work with I2C, you can easily do so by using a hot air gun/rework station and changing two resistors R2 -> R1, and R4 -> R8:
 ![I2C](https://user-images.githubusercontent.com/11274319/222263210-958d5883-7d8d-4567-b8d4-93587f05dde8.jpg)
 
-I2C adress is 0x2A. 
+I2C address is 0x2A. 
 More default information changing to I2C and change I2C address to 0x28 here: 
 https://blog.edhayes.us/2022/02/23/clrc663-module-spi-i2c/
 
