@@ -22,6 +22,7 @@ class CLRC663 {
     private:
         enum clrc633_transport _transport;
         int8_t _cs;
+        int8_t _rst;
         int8_t _irq;
         // SPI specific
         SPIClass *_spi;
@@ -60,15 +61,17 @@ class CLRC663 {
         void AN1102_recommended_registers_skip(uint8_t protocol, uint8_t skip);
     public:
         // SPI constructor
-        CLRC663(SPIClass *spi, int8_t cs, int8_t irq = -1);
+        CLRC663(SPIClass *spi, int8_t cs, int8_t rst = -1, int8_t irq = -1);
         // I2C constructor
-        CLRC663(uint8_t i2c_address = 0x2A, int8_t irq = -1);
+        CLRC663(uint8_t i2c_address = 0x2A, int8_t rst = -1, int8_t irq = -1);
 
         // public functions
         void begin();
         void begin(int sda, int scl);
         void end();
+        void reset();
         void softReset();
+        void hardReset();
         uint8_t getVersion(); 
         // register interaction functions
         uint8_t read_reg(uint8_t reg);

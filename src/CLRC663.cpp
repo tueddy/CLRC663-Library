@@ -17,10 +17,10 @@
 
 #include "CLRC663.h"
 
-
+#define MAX_GPIO 39
 
 // SPI constructor
-CLRC663::CLRC663(SPIClass *SPI, int8_t cs, int8_t irq) {
+CLRC663::CLRC663(SPIClass *SPI, int8_t cs, int8_t rst, int8_t irq) {
   // set the transport
   _transport = MFRC630_TRANSPORT_SPI;
   // set SPI
@@ -28,11 +28,21 @@ CLRC663::CLRC663(SPIClass *SPI, int8_t cs, int8_t irq) {
   // Set the CS/SSEL pin 
   _cs = cs;
   pinMode(_cs, OUTPUT);
+  // set RESET pin (optional)
+  if ((rst >= 0) && (rst <= MAX_GPIO)) {
+    _rst = rst;
+    pinMode(_rst, OUTPUT);
+    digitalWrite(_rst, LOW);
+  } else {
+    _rst = -1;
+  }
   // set IRQ pin for LPCD
-  _irq = irq;
-  if (_irq >= 0) {
+  if ((irq >= 0) && (irq <= MAX_GPIO)) {
+    _irq = irq;
     pinMode(_irq, INPUT);
-  }  
+  } else {
+    _irq = -1;
+  }
   /* Disable I2C access */
   _wire = NULL;
   _i2c_addr = 0;
@@ -40,18 +50,26 @@ CLRC663::CLRC663(SPIClass *SPI, int8_t cs, int8_t irq) {
 
 
 // I2C constructor
-CLRC663::CLRC663(uint8_t i2c_addr, int8_t irq) {
+CLRC663::CLRC663(uint8_t i2c_addr, int8_t rst, int8_t irq) {
   // Set the transport 
   _transport = MFRC630_TRANSPORT_I2C;
   // Set the I2C address 
   _i2c_addr = i2c_addr;
   // Set the I2C bus instance 
   _wire = &Wire;
+  // set RESET pin (optional)
+  if ((rst >= 0) && (rst <= MAX_GPIO)) {
+    _rst = rst;
+  } else {
+    _rst = -1;
+  }
   // set IRQ pin for LPCD
-  _irq = irq;
-  if (_irq >= 0) {
+  if ((irq >= 0) && (irq <= MAX_GPIO)) {
+    _irq = irq;
     pinMode(_irq, INPUT);
-  }  
+  } else {
+    _irq = -1;
+  }
   // disable SPI
   _spi = NULL;
   _cs = -1;
@@ -64,17 +82,18 @@ void CLRC663::begin() {
         _spi->begin();
     } else {
         // I2C
-        byte pinSDA= SDA;
-        byte pinSCL= SCL;
+        byte pinSDA = SDA;
+        byte pinSCL = SCL;
         _wire->begin(pinSDA, pinSCL);
     }
+  reset();
 }
 
 void CLRC663::begin(int sda, int scl) {
     // I2C
-    byte pinSDA= sda;
-    byte pinSCL= scl;
-    _wire->begin(pinSDA, pinSCL);
+    _wire->setPins(sda, scl);
+    _wire->begin();
+  reset();
 }
 
 void CLRC663::end() {
@@ -107,7 +126,7 @@ uint8_t CLRC663::read_reg(uint8_t reg) {
     _wire->beginTransmission(_i2c_addr);
     _wire->write(reg);
     _wire->endTransmission();
-    _wire->requestFrom((uint8_t)_i2c_addr, (uint8_t)1);
+    _wire->requestFrom(_i2c_addr, (uint8_t)1);
     return _wire->read();
   }
 }
@@ -261,6 +280,16 @@ uint16_t CLRC663::timer_get_value(uint8_t timer) {
   return res;
 }
 
+/*
+ * perform a reset of the reader (hard/soft depending on RESET pin connected)
+*/
+void CLRC663::reset(void){
+  if (_rst != -1) {
+    hardReset();
+  } else {
+    softReset();
+  }
+}
 
 /*
  * perform a software reset of the reader
@@ -268,6 +297,20 @@ uint16_t CLRC663::timer_get_value(uint8_t timer) {
 void CLRC663::softReset(void){
   write_reg(MFRC630_REG_COMMAND, MFRC630_CMD_SOFTRESET);
   delay(50);
+}
+
+/*
+ * perform a hardware reset of the reader
+*/
+void CLRC663::hardReset(void){
+if (_rst != -1) {
+    digitalWrite(_rst, HIGH);
+    digitalWrite(_rst, LOW);
+    digitalWrite(_rst, HIGH);
+    digitalWrite(_rst, LOW);
+    /* Typical 2.5ms startup delay */
+    delay(10);
+  }
 }
 
 
@@ -1092,7 +1135,7 @@ uint16_t CLRC663::ISO15693_readTag(uint8_t* uid){
 	write_reg(MFRC630_REG_FIFODATA, 0xA);
 	write_reg(MFRC630_REG_COMMAND, MFRC630_CMD_LOADPROTOCOL);	// Execute Rc663 command: "Load protocol"
 
-//  write_reg(0x39, 0x03);  // Raise receiver gain to maximum
+//  write_reg(MFRC630_REG_RXANA, RECEIVER_GAIN_MAX);  // Raise receiver gain to maximum
 	write_reg(MFRC630_REG_DRVMOD, 0x8E);	//Field on
 
   const uint8_t buf[] = MFRC630_RECOM_15693_ID1_SSC26;
@@ -1155,13 +1198,16 @@ uint16_t CLRC663::ISO15693_readTag(uint8_t* uid){
 
 	//see if a uid was found:
 	uint16_t fifo_len = fifo_length();
-  Serial.println(fifo_len);
+//  Serial.println(fifo_len);
 	if(fifo_len < MFRC630_ISO15693_UID_LENGTH){
 		return 0x00;								//return error - invalid uid size!
 	}
 
 	//transfer UID to variable
   uint8_t len = fifo_len - 2;
+	if(len > 10){
+		return 0x00;								//return error - invalid uid size!
+	}
 
   uint8_t dummy[10];
   read_fifo(dummy, fifo_len);
